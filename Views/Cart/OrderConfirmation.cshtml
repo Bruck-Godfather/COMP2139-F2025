@@ -1,0 +1,60 @@
+@{
+    ViewData["Title"] = "Order Confirmed";
+}
+
+<div class="container mt-5 text-center">
+    <div class="card shadow-lg border-0 mx-auto" style="max-width: 600px;">
+        <div class="card-body p-5">
+            <div class="mb-4 text-success">
+                <i class="bi bi-check-circle-fill display-1"></i>
+            </div>
+            <h1 class="mb-3">Order Confirmed!</h1>
+            <p class="lead text-muted mb-4">Thank you for your purchase. Your tickets have been sent to your email.</p>
+            
+            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                <a asp-controller="Dashboard" asp-action="Index" class="btn btn-primary btn-lg px-4 gap-3">View My Tickets</a>
+                <a asp-controller="Event" asp-action="Index" class="btn btn-outline-secondary btn-lg px-4">Browse More Events</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confetti Modal (Auto-triggered) -->
+<div class="modal fade" id="confettiModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 bg-transparent shadow-none">
+            <div class="modal-body text-center">
+                <!-- Confetti canvas will be here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Trigger confetti
+            var duration = 3 * 1000;
+            var animationEnd = Date.now() + duration;
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+            function random(min, max) {
+              return Math.random() * (max - min) + min;
+            }
+
+            var interval = setInterval(function() {
+              var timeLeft = animationEnd - Date.now();
+
+              if (timeLeft <= 0) {
+                return clearInterval(interval);
+              }
+
+              var particleCount = 50 * (timeLeft / duration);
+              // since particles fall down, start a bit higher than random
+              confetti(Object.assign({}, defaults, { particleCount, origin: { x: random(0.1, 0.3), y: Math.random() - 0.2 } }));
+              confetti(Object.assign({}, defaults, { particleCount, origin: { x: random(0.7, 0.9), y: Math.random() - 0.2 } }));
+            }, 250);
+        });
+    </script>
+}

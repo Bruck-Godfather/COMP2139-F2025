@@ -1,0 +1,199 @@
+@model COMP2138_ICE.ViewModels.AdminDashboardViewModel
+
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-0">Admin Dashboard</h1>
+            <p class="text-muted">Manage users and view platform activity</p>
+        </div>
+        <div class="text-end">
+            <span class="badge bg-primary rounded-pill px-3 py-2">Admin Access</span>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0"><i class="bi bi-people me-2"></i>User Management</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">User</th>
+                            <th>Roles</th>
+                            <th>Stats</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var userDetail in Model.Users)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        @if (!string.IsNullOrEmpty(userDetail.User.ProfilePicturePath))
+                                        {
+                                            <img src="@userDetail.User.ProfilePicturePath" alt="Profile" class="rounded-circle me-3" style="width: 40px; height: 40px; object-fit: cover;">
+                                        }
+                                        else
+                                        {
+                                            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                                <i class="bi bi-person-fill"></i>
+                                            </div>
+                                        }
+                                        <div>
+                                            <div class="fw-bold">@userDetail.User.DisplayName</div>
+                                            <div class="text-muted small d-flex align-items-center">
+                                                <span id="email-@userDetail.User.Id">@userDetail.User.Email</span>
+                                                <button class="btn btn-link btn-sm p-0 ms-2 text-decoration-none" onclick="copyToClipboard('email-@userDetail.User.Id')" title="Copy Email">
+                                                    <i class="bi bi-clipboard"></i>
+                                                </button>
+                                            </div>
+                                            <div class="text-muted small">
+                                                <i class="bi bi-calendar3 me-1"></i> @userDetail.User.DateOfBirth.ToString("MMM dd, yyyy")
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    @foreach (var role in userDetail.Roles)
+                                    {
+                                        <span class="badge bg-info text-dark me-1">@role</span>
+                                    }
+                                    @if (!userDetail.Roles.Any())
+                                    {
+                                        <span class="badge bg-light text-dark border">User</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-3">
+                                        <div class="text-center">
+                                            <div class="fw-bold">@userDetail.Purchases.Count</div>
+                                            <div class="text-muted small">Orders</div>
+                                        </div>
+                                        <div class="text-center">
+                                            <div class="fw-bold">@userDetail.Ratings.Count</div>
+                                            <div class="text-muted small">Reviews</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#details-@userDetail.User.Id" aria-expanded="false">
+                                        View Details <i class="bi bi-chevron-down ms-1"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="collapse bg-light" id="details-@userDetail.User.Id">
+                                <td colspan="4" class="p-4">
+                                    <div class="row">
+                                        <!-- Purchase History -->
+                                        <div class="col-md-7">
+                                            <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-receipt me-2"></i>Purchase History</h6>
+                                            @if (userDetail.Purchases.Any())
+                                            {
+                                                <div class="table-responsive bg-white rounded shadow-sm">
+                                                    <table class="table table-sm mb-0">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Date</th>
+                                                                <th>Event</th>
+                                                                <th>Tickets</th>
+                                                                <th>Total</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @foreach (var purchase in userDetail.Purchases)
+                                                            {
+                                                                <tr>
+                                                                    <td>@purchase.PurchaseDate.ToString("MMM dd, yyyy")</td>
+                                                                    <td>@(purchase.Event?.Title ?? "Unknown Event")</td>
+                                                                    <td>@purchase.TicketQuantity</td>
+                                                                    <td>@purchase.TotalAmount.ToString("C")</td>
+                                                                </tr>
+                                                            }
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <p class="text-muted fst-italic">No purchases found.</p>
+                                            }
+                                        </div>
+
+                                        <!-- Ratings & Reviews -->
+                                        <div class="col-md-5">
+                                            <h6 class="fw-bold mb-3 text-warning"><i class="bi bi-star-fill me-2"></i>Ratings & Reviews</h6>
+                                            @if (userDetail.Ratings.Any())
+                                            {
+                                                <div class="list-group shadow-sm">
+                                                    @foreach (var rating in userDetail.Ratings)
+                                                    {
+                                                        <div class="list-group-item border-0 mb-1 rounded">
+                                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                                <small class="fw-bold">@(rating.Event?.Title ?? "Unknown Event")</small>
+                                                                <div class="text-warning small">
+                                                                    @for (int i = 0; i < rating.Stars; i++) { <i class="bi bi-star-fill"></i> }
+                                                                    @for (int i = rating.Stars; i < 5; i++) { <i class="bi bi-star"></i> }
+                                                                </div>
+                                                            </div>
+                                                            @if (!string.IsNullOrEmpty(rating.Comment))
+                                                            {
+                                                                <p class="mb-0 small text-muted">"@rating.Comment"</p>
+                                                            }
+                                                            <small class="text-muted" style="font-size: 0.75rem;">@rating.CreatedAt.ToString("MMM dd, yyyy")</small>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <p class="text-muted fst-italic">No ratings found.</p>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer bg-white py-3">
+            @{
+                var prevDisabled = !Model.Users.HasPreviousPage ? "disabled" : "";
+                var nextDisabled = !Model.Users.HasNextPage ? "disabled" : "";
+            }
+            <nav aria-label="User navigation">
+                <ul class="pagination justify-content-center mb-0">
+                    <li class="page-item @prevDisabled">
+                        <a asp-action="Index" asp-route-usersPage="@(Model.Users.PageIndex - 1)" class="page-link">Previous</a>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link">Page @Model.Users.PageIndex of @Model.Users.TotalPages</span>
+                    </li>
+                    <li class="page-item @nextDisabled">
+                        <a asp-action="Index" asp-route-usersPage="@(Model.Users.PageIndex + 1)" class="page-link">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<script>
+    function copyToClipboard(elementId) {
+        var text = document.getElementById(elementId).innerText;
+        navigator.clipboard.writeText(text).then(function() {
+            // Optional: Show a tooltip or toast
+            // alert("Email copied: " + text); // Commented out to be less intrusive
+        }, function(err) {
+            console.error('Could not copy text: ', err);
+        });
+    }
+</script>

@@ -1,0 +1,79 @@
+@model COMP2138_ICE.Helpers.PaginatedList<COMP2138_ICE.Models.Event>
+
+<div class="row">
+    @foreach (var item in Model)
+    {
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm event-card">
+                @if (!string.IsNullOrEmpty(item.ImagePath))
+                {
+                    <img src="@item.ImagePath" class="card-img-top" alt="@item.Title">
+                }
+                else
+                {
+                    <div class="card-img-top bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
+                        <span>No Image</span>
+                    </div>
+                }
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">@item.Title</h5>
+                    <p class="card-text text-muted">
+                        <i class="bi bi-calendar-event"></i> @item.DateTime.ToString("MMM dd, yyyy HH:mm")
+                    </p>
+                    <p class="card-text">
+                        <span class="badge bg-info text-dark">@item.Category?.Name</span>
+                    </p>
+                    <div class="mt-auto d-flex justify-content-between align-items-center">
+                        <span class="event-price">@item.Price.ToString("C")</span>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-primary btn-sm">Details</a>
+                    </div>
+                </div>
+                <div class="card-footer bg-white border-top-0">
+                    @if (item.DateTime < DateTime.Now)
+                    {
+                        <small class="text-danger"><i class="bi bi-exclamation-circle"></i> Expired</small>
+                    }
+                    else if (item.TicketsAvailable > 0)
+                    {
+                        <small class="text-success"><i class="bi bi-check-circle"></i> Available</small>
+                    }
+                    else
+                    {
+                        <small class="text-danger"><i class="bi bi-x-circle"></i> Sold Out</small>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-warning text-center">
+        No events found matching your criteria.
+    </div>
+}
+else
+{
+    var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
+    var nextDisabled = !Model.HasNextPage ? "disabled" : "";
+
+    <div class="d-flex justify-content-center mt-4">
+        <a asp-action="Index"
+           asp-route-pageNumber="@(Model.PageIndex - 1)"
+           asp-route-searchString="@ViewData["CurrentFilter"]"
+           asp-route-categoryId="@ViewData["CurrentCategory"]"
+           class="btn btn-outline-primary me-2 @prevDisabled pagination-link"
+           data-page="@(Model.PageIndex - 1)">
+            Previous
+        </a>
+        <a asp-action="Index"
+           asp-route-pageNumber="@(Model.PageIndex + 1)"
+           asp-route-searchString="@ViewData["CurrentFilter"]"
+           asp-route-categoryId="@ViewData["CurrentCategory"]"
+           class="btn btn-outline-primary @nextDisabled pagination-link"
+           data-page="@(Model.PageIndex + 1)">
+            Next
+        </a>
+    </div>
+}

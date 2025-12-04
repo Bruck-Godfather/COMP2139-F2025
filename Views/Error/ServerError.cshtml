@@ -1,0 +1,11 @@
+@{
+    ViewData["Title"] = "Server Error";
+}
+
+<div class="container mt-5 text-center">
+    <h1 class="display-1 text-danger">500</h1>
+    <h2 class="mb-4">Internal Server Error</h2>
+    <p class="lead">@ViewBag.ErrorMessage</p>
+    <p class="text-muted">Our team has been notified and we are working on a fix.</p>
+    <a asp-controller="Home" asp-action="Index" class="btn btn-primary mt-3">Go to Home</a>
+</div>

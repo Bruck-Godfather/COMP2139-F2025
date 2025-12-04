@@ -1,0 +1,153 @@
+@{
+    ViewData["Title"] = "QR Code Scanner";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0"><i class="bi bi-qr-code-scan"></i> Scan Event Tickets</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> Enter the ticket number to mark attendance. Tickets can only be scanned on or after the event date.
+                    </div>
+
+                    <form id="scanForm">
+                        <div class="mb-3">
+                            <label for="ticketNumber" class="form-label">Ticket Number</label>
+                            <input type="text" class="form-control form-control-lg" id="ticketNumber" name="ticketNumber" 
+                                   placeholder="e.g., ABC12345-1" autofocus required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="bi bi-check-circle"></i> Scan Ticket
+                        </button>
+                    </form>
+
+                    <div id="resultMessage" class="mt-4" style="display:none;"></div>
+
+                    <div id="ticketDetails" class="mt-4" style="display:none;">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h5 class="card-title">Ticket Details</h5>
+                                <p class="mb-1"><strong>Event:</strong> <span id="eventTitle"></span></p>
+                                <p class="mb-1"><strong>Attendee:</strong> <span id="attendeeName"></span></p>
+                                <p class="mb-0"><strong>Scanned At:</strong> <span id="scannedAt"></span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow mt-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> Recent Scans</h5>
+                </div>
+                <div class="card-body">
+                    <div id="recentScans" class="list-group">
+                        <p class="text-muted">No scans yet. Start scanning tickets above.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            let recentScans = [];
+
+            $('#scanForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                var ticketNumber = $('#ticketNumber').val().trim();
+                if (!ticketNumber) return;
+
+                // Clear previous results
+                $('#resultMessage').hide();
+                $('#ticketDetails').hide();
+
+                $.ajax({
+                    url: '/QRScan/ScanTicket',
+                    type: 'POST',
+                    data: { ticketNumber: ticketNumber },
+                    success: function(response) {
+                        if (response.success) {
+                            // Show success message
+                            $('#resultMessage')
+                                .removeClass('alert-danger alert-warning')
+                                .addClass('alert alert-success')
+                                .html('<i class="bi bi-check-circle-fill"></i> ' + response.message)
+                                .show();
+
+                            // Show ticket details
+                            $('#eventTitle').text(response.eventTitle);
+                            $('#attendeeName').text(response.attendeeName);
+                            $('#scannedAt').text(response.scannedAt);
+                            $('#ticketDetails').show();
+
+                            // Add to recent scans
+                            addRecentScan(ticketNumber, response.eventTitle, response.scannedAt, true);
+
+                            // Clear input
+                            $('#ticketNumber').val('').focus();
+                        } else {
+                            // Show error message
+                            var alertClass = response.tooEarly ? 'alert-warning' : 'alert-danger';
+                            $('#resultMessage')
+                                .removeClass('alert-success alert-warning alert-danger')
+                                .addClass('alert ' + alertClass)
+                                .html('<i class="bi bi-exclamation-triangle-fill"></i> ' + response.message)
+                                .show();
+
+                            if (response.alreadyUsed) {
+                                addRecentScan(ticketNumber, 'Already Used', new Date().toLocaleString(), false);
+                            }
+                        }
+                    },
+                    error: function(xhr) {
+                        $('#resultMessage')
+                            .removeClass('alert-success alert-warning')
+                            .addClass('alert alert-danger')
+                            .html('<i class="bi bi-x-circle-fill"></i> Error: ' + (xhr.responseText || 'Failed to scan ticket'))
+                            .show();
+                    }
+                });
+            });
+
+            function addRecentScan(ticketNumber, eventTitle, time, success) {
+                var scanItem = {
+                    ticketNumber: ticketNumber,
+                    eventTitle: eventTitle,
+                    time: time,
+                    success: success
+                };
+                
+                recentScans.unshift(scanItem);
+                if (recentScans.length > 10) recentScans.pop();
+
+                updateRecentScans();
+            }
+
+            function updateRecentScans() {
+                if (recentScans.length === 0) return;
+
+                var html = '';
+                recentScans.forEach(function(scan) {
+                    var iconClass = scan.success ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger';
+                    html += '<div class="list-group-item">';
+                    html += '<div class="d-flex w-100 justify-content-between">';
+                    html += '<h6 class="mb-1"><i class="bi ' + iconClass + '"></i> ' + scan.ticketNumber + '</h6>';
+                    html += '<small>' + scan.time + '</small>';
+                    html += '</div>';
+                    html += '<p class="mb-0 text-muted">' + scan.eventTitle + '</p>';
+                    html += '</div>';
+                });
+
+                $('#recentScans').html(html);
+            }
+        });
+    </script>
+}

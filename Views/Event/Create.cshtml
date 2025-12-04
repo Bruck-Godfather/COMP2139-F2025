@@ -1,0 +1,208 @@
+@model COMP2138_ICE.Models.Event
+
+@{
+    ViewData["Title"] = "Create Event";
+}
+
+<h1>Create Event</h1>
+
+<h4>Event</h4>
+<hr />
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <form asp-action="Create" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <!-- Basic Information Section -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Basic Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-group mb-3">
+                        <label asp-for="Title" class="form-label fw-bold">Event Title</label>
+                        <input asp-for="Title" class="form-control form-control-lg" placeholder="Enter a catchy title..." />
+                        <span asp-validation-for="Title" class="text-danger"></span>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label asp-for="CategoryId" class="form-label fw-bold">Category</label>
+                        <select asp-for="CategoryId" class="form-control" asp-items="ViewBag.CategoryId"></select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Schedule Section -->
+                <div class="col-md-6">
+                    <div class="card shadow-sm mb-4 h-100">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0"><i class="bi bi-calendar3 me-2"></i>Schedule</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label asp-for="DateTime" class="form-label fw-bold">Date & Time</label>
+                                <input asp-for="DateTime" class="form-control" type="datetime-local" />
+                                <span asp-validation-for="DateTime" class="text-danger"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label asp-for="TimeZoneId" class="form-label fw-bold">Time Zone</label>
+                                <select asp-for="TimeZoneId" class="form-select">
+                                    <option value="UTC">UTC (Coordinated Universal Time)</option>
+                                    <option value="America/New_York">Eastern Time (US & Canada)</option>
+                                    <option value="America/Chicago">Central Time (US & Canada)</option>
+                                    <option value="America/Denver">Mountain Time (US & Canada)</option>
+                                    <option value="America/Los_Angeles">Pacific Time (US & Canada)</option>
+                                    <option value="Europe/London">London</option>
+                                    <option value="Europe/Paris">Paris</option>
+                                    <option value="Asia/Kolkata">India Standard Time</option>
+                                    <option value="Asia/Tokyo">Tokyo</option>
+                                    <option value="Australia/Sydney">Sydney</option>
+                                </select>
+                                <span asp-validation-for="TimeZoneId" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ticketing Section -->
+                <div class="col-md-6">
+                    <div class="card shadow-sm mb-4 h-100">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0"><i class="bi bi-ticket-perforated me-2"></i>Ticketing</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="form-group mb-3">
+                                        <label asp-for="Price" class="form-label fw-bold">Price ($)</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input asp-for="Price" class="form-control" placeholder="0.00" />
+                                        </div>
+                                        <span asp-validation-for="Price" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-group mb-3">
+                                        <label asp-for="TicketsAvailable" class="form-label fw-bold">Capacity</label>
+                                        <input asp-for="TicketsAvailable" class="form-control" placeholder="Total tickets" />
+                                        <span asp-validation-for="TicketsAvailable" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description & Media Section -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-file-earmark-text me-2"></i>Details & Media</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <label asp-for="Description" class="form-label fw-bold">Description</label>
+                        <input type="hidden" asp-for="Description" id="eventDescription" />
+                        <div id="editor-container" style="height: 300px; background-color: white;"></div>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label class="form-label fw-bold">Event Image</label>
+                        <div class="mb-2 text-center" id="imagePreviewContainer" style="display:none;">
+                            <img id="eventImagePreview" src="#" alt="Image Preview" class="img-fluid rounded" style="max-height: 200px;" />
+                        </div>
+                        <div class="input-group">
+                            <input type="file" name="imageFile" id="imageFile" class="form-control" accept="image/*" />
+                            <label class="input-group-text" for="imageFile">Upload</label>
+                        </div>
+                        <small class="text-muted">Max file size: 1MB. Allowed formats: JPG, PNG, GIF.</small>
+                        <div id="fileError" class="text-danger mt-2" style="display:none;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end mb-5">
+                <a asp-action="Index" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                <input type="submit" value="Create Event" class="btn btn-primary btn-lg px-5" />
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <!-- Quill CSS -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    
+    <!-- Quill JS -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            // Initialize Quill editor
+            var quill = new Quill('#editor-container', {
+                theme: 'snow',
+                placeholder: 'Enter event description...',
+                modules: {
+                    toolbar: [
+                        [{ 'header': [1, 2, 3, false] }],
+                        ['bold', 'italic', 'underline', 'strike'],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        [{ 'color': [] }, { 'background': [] }],
+                        [{ 'align': [] }],
+                        ['link'],
+                        ['clean']
+                    ]
+                }
+            });
+
+            // Sync Quill content to hidden textarea on form submit
+            $('form').on('submit', function() {
+                var description = document.querySelector('input[name=Description]');
+                // Populate hidden form on submit
+                var html = quill.root.innerHTML;
+                if (html === '<p><br></p>') html = ''; // Handle empty state
+                $('#eventDescription').val(html);
+            });
+
+            $('#imageFile').on('change', function() {
+                const file = this.files[0];
+                const fileError = $('#fileError');
+                const previewContainer = $('#imagePreviewContainer');
+                const previewImage = $('#eventImagePreview');
+                
+                fileError.hide().text('');
+
+                if (file) {
+                    // Validate Size (1MB = 1048576 bytes)
+                    if (file.size > 1048576) {
+                        fileError.text('File size exceeds 1MB limit. Please choose a smaller image.').show();
+                        $(this).val(''); // Clear input
+                        previewContainer.hide();
+                        return;
+                    }
+
+                    // Validate Type
+                    if (!file.type.startsWith('image/')) {
+                        fileError.text('Invalid file type. Please upload an image.').show();
+                        $(this).val('');
+                        previewContainer.hide();
+                        return;
+                    }
+
+                    // Show Preview
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewImage.attr('src', e.target.result);
+                        previewContainer.show();
+                    }
+                    reader.readAsDataURL(file);
+                } else {
+                    previewContainer.hide();
+                }
+            });
+        });
+    </script>
+}

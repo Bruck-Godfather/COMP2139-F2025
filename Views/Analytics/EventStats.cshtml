@@ -1,0 +1,92 @@
+@model COMP2138_ICE.Models.Event
+
+@{
+    ViewData["Title"] = "Event Statistics";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-1">@Model.Title</h1>
+            <p class="text-muted">
+                <i class="bi bi-calendar-event"></i> @Model.DateTime.ToString("f") | 
+                <i class="bi bi-geo-alt"></i> @(Model.TimeZoneId ?? "UTC")
+            </p>
+        </div>
+        <a asp-controller="Dashboard" asp-action="Index" class="btn btn-outline-secondary">Back to Dashboard</a>
+    </div>
+
+    <!-- Key Metrics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary mb-3 shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-ticket-perforated"></i> Tickets Sold</h5>
+                    <p class="card-text display-6">@ViewBag.TotalTicketsSold / @(ViewBag.TotalTicketsSold + Model.TicketsAvailable)</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3 shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-currency-dollar"></i> Revenue</h5>
+                    <p class="card-text display-6">@(((decimal)ViewBag.TotalRevenue).ToString("C"))</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info mb-3 shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-people"></i> Attendance</h5>
+                    <p class="card-text display-6">@ViewBag.TotalAttended</p>
+                    <small>Scanned Tickets</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning mb-3 shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-star-fill"></i> Rating</h5>
+                    <p class="card-text display-6">@(((double)ViewBag.AverageRating).ToString("0.0")) <span class="fs-6">(@ViewBag.RatingCount)</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ratings & Comments Section -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-light">
+            <h4 class="mb-0">User Reviews</h4>
+        </div>
+        <div class="card-body">
+            @if (Model.Ratings != null && Model.Ratings.Any())
+            {
+                <div class="list-group list-group-flush">
+                    @foreach (var rating in Model.Ratings.OrderByDescending(r => r.CreatedAt))
+                    {
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <i class="bi bi-star@(i <= rating.Stars ? "-fill" : "") text-warning"></i>
+                                    }
+                                </h5>
+                                <small class="text-muted">@rating.CreatedAt.ToString("g")</small>
+                            </div>
+                            <p class="mb-1">@rating.Comment</p>
+                            <small class="text-muted">By @(rating.User?.UserName ?? "Unknown User")</small>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-chat-square-text display-4 mb-3 d-block"></i>
+                    <p>No reviews yet.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

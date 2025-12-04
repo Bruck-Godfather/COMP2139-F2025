@@ -1,0 +1,61 @@
+@{
+    ViewData["Title"] = "Analytics Dashboard";
+}
+
+<div class="container mt-4">
+    <h1 class="mb-4">Analytics Dashboard</h1>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">Ticket Sales by Category</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="salesByCategoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">Revenue by Month</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="revenueByMonthChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">Top 5 Best-Selling Events</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="topEventsTable">
+                            <thead>
+                                <tr>
+                                    <th>Event Title</th>
+                                    <th>Tickets Sold</th>
+                                    <th>Total Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data loaded via AJAX -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="~/js/analytics.js"></script>
+}

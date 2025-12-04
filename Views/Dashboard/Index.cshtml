@@ -1,0 +1,486 @@
+@using COMP2138_ICE.ViewModels
+@model DashboardViewModel
+
+@{
+    ViewData["Title"] = "My Dashboard";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <ul class="nav nav-tabs mb-4" id="dashboardTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab">My Profile</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="tickets-tab" data-bs-toggle="tab" data-bs-target="#tickets" type="button" role="tab">My Tickets</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab">Purchase History</button>
+                </li>
+                @if (User.IsInRole("Organizer") || User.IsInRole("Admin"))
+                {
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="events-tab" data-bs-toggle="tab" data-bs-target="#events" type="button" role="tab">My Events</button>
+                    </li>
+                }
+            </ul>
+
+            <div class="tab-content" id="dashboardTabContent">
+                
+                <!-- Profile Section -->
+                <div class="tab-pane fade show active" id="profile" role="tabpanel">
+                    <!-- View Mode -->
+                    <div id="profile-view">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col-md-3 text-center mb-3 mb-md-0">
+                                        @if (!string.IsNullOrEmpty(Model.User.ProfilePicturePath))
+                                        {
+                                            <img src="@Model.User.ProfilePicturePath" alt="Profile" class="rounded-circle img-thumbnail" style="width: 150px; height: 150px; object-fit: cover;" />
+                                        }
+                                        else
+                                        {
+                                            <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 150px; height: 150px; font-size: 3rem;">
+                                                @Model.User.DisplayName?.Substring(0, 1).ToUpper()
+                                            </div>
+                                        }
+                                    </div>
+                                    <div class="col-md-9">
+                                        <h3 class="mb-1">@Model.User.DisplayName</h3>
+                                        <p class="text-muted mb-3">@Model.User.Email</p>
+                                        
+                                        <div class="row mb-2">
+                                            <div class="col-sm-3 fw-bold text-secondary">Full Name</div>
+                                            <div class="col-sm-9">@(string.IsNullOrEmpty(Model.User.FullName) ? "-" : Model.User.FullName)</div>
+                                        </div>
+                                        <div class="row mb-2">
+                                            <div class="col-sm-3 fw-bold text-secondary">Date of Birth</div>
+                                            <div class="col-sm-9">@Model.User.DateOfBirth.ToString("MMMM dd, yyyy")</div>
+                                        </div>
+                                        <div class="row mb-2">
+                                            <div class="col-sm-3 fw-bold text-secondary">Phone</div>
+                                            <div class="col-sm-9">@(string.IsNullOrEmpty(Model.User.PhoneNumber) ? "-" : Model.User.PhoneNumber)</div>
+                                        </div>
+                                        
+                                        <div class="mt-4">
+                                            <button class="btn btn-primary" onclick="toggleProfileEdit(true)">
+                                                <i class="bi bi-pencil me-2"></i>Edit Profile
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Edit Mode -->
+                    <div id="profile-edit" style="display:none;">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h4 class="mb-0">Edit Profile</h4>
+                                    <button type="button" class="btn-close" onclick="toggleProfileEdit(false)" aria-label="Close"></button>
+                                </div>
+                                
+                                <form asp-action="UpdateProfile" method="post" enctype="multipart/form-data">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Full Name</label>
+                                            <input type="text" name="FullName" class="form-control" value="@Model.User.FullName" />
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Date of Birth</label>
+                                            <input type="date" name="DateOfBirth" class="form-control" value="@Model.User.DateOfBirth.ToString("yyyy-MM-dd")" />
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label">Phone Number</label>
+                                        <input type="tel" name="PhoneNumber" class="form-control" value="@Model.User.PhoneNumber" />
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label">Profile Picture</label>
+                                        <div class="mb-2 text-center">
+                                            @{
+                                                var currentPicPath = !string.IsNullOrEmpty(Model.User.ProfilePicturePath) ? Model.User.ProfilePicturePath : "https://placehold.co/150x150?text=Avatar";
+                                            }
+                                            <img id="profilePreview" 
+                                                 src="@currentPicPath" 
+                                                 data-default-src="@currentPicPath"
+                                                 class="rounded-circle img-thumbnail" 
+                                                 style="width: 100px; height: 100px; object-fit: cover;" />
+                                        </div>
+                                        <input type="file" name="profilePicture" id="profilePictureInput" class="form-control" accept="image/*" />
+                                        <div class="form-text">Upload a new picture to replace the current one.</div>
+                                    </div>
+                                    
+                                    <div class="d-flex gap-2 mt-4">
+                                        <button type="submit" class="btn btn-primary px-4">Save Changes</button>
+                                        <button type="button" class="btn btn-outline-secondary px-4" onclick="toggleProfileEdit(false)">Cancel</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- My Tickets Section -->
+                <div class="tab-pane fade" id="tickets" role="tabpanel">
+                    <h3 class="mb-3">Upcoming Events</h3>
+                    @if (Model.UpcomingTickets.Any())
+                    {
+                        <div class="row">
+                            @foreach (var purchase in Model.UpcomingTickets)
+                            {
+                                <div class="col-md-12 mb-3">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <div class="row align-items-center">
+                                                <div class="col-md-8">
+                                                    <h5 class="card-title">@purchase.Event?.Title</h5>
+                                                    <p class="card-text">
+                                                        <i class="bi bi-calendar-event"></i> @purchase.Event?.DateTime.ToString("f")<br />
+                                                        <i class="bi bi-ticket-perforated"></i> @purchase.TicketQuantity Tickets
+                                                    </p>
+                                                </div>
+                                                <div class="col-md-4 text-end">
+                                                    @foreach (var ticket in purchase.Tickets ?? Enumerable.Empty<Ticket>())
+                                                    {
+                                                        <div class="mb-2">
+                                                            <a asp-action="DownloadTicket" asp-route-ticketId="@ticket.Id" class="btn btn-sm btn-success">
+                                                                <i class="bi bi-download"></i> Ticket #@ticket.TicketNumber
+                                                            </a>
+                                                            <!-- QR Code Modal Trigger would go here -->
+                                                            <img src="data:image/png;base64,@ticket.QRCodeData" alt="QR" width="50" class="ms-2 border" />
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        
+                        <!-- Tickets Pagination -->
+                        <div class="d-flex justify-content-center mt-3">
+                            <a asp-action="Index" asp-route-ticketPage="@(Model.UpcomingTickets.PageIndex - 1)" 
+                               class="btn btn-sm btn-outline-primary me-2 @(!Model.UpcomingTickets.HasPreviousPage ? "disabled" : "")">Previous</a>
+                            <a asp-action="Index" asp-route-ticketPage="@(Model.UpcomingTickets.PageIndex + 1)" 
+                               class="btn btn-sm btn-outline-primary @(!Model.UpcomingTickets.HasNextPage ? "disabled" : "")">Next</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">You have no upcoming tickets. <a asp-controller="Event" asp-action="Index">Browse events</a></div>
+                    }
+                </div>
+
+                <!-- Purchase History Section -->
+                <div class="tab-pane fade" id="history" role="tabpanel">
+                    <h3 class="mb-3">All Purchases</h3>
+                    @if (Model.PurchaseHistory.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Event</th>
+                                        <th>Date</th>
+                                        <th>Tickets</th>
+                                        <th>Total</th>
+                                        <th>Rating</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var purchase in Model.PurchaseHistory)
+                                    {
+                                        <tr>
+                                            <td>@purchase.Event?.Title</td>
+                                            <td>@purchase.Event?.DateTime.ToString("d")</td>
+                                            <td>@purchase.TicketQuantity</td>
+                                            <td>@purchase.TotalAmount.ToString("C")</td>
+                                            <td>
+                                                <div class="rating-cell" data-purchase-id="@purchase.Id">
+                                                    <span class="rating-display"></span>
+                                                    <button type="button" class="btn btn-sm btn-outline-primary rate-btn" style="display:none;">
+                                                        <i class="bi bi-star"></i> Rate
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- History Pagination -->
+                        <div class="d-flex justify-content-center mt-3">
+                            <a asp-action="Index" asp-route-historyPage="@(Model.PurchaseHistory.PageIndex - 1)" 
+                               class="btn btn-sm btn-outline-primary me-2 @(!Model.PurchaseHistory.HasPreviousPage ? "disabled" : "")">Previous</a>
+                            <a asp-action="Index" asp-route-historyPage="@(Model.PurchaseHistory.PageIndex + 1)" 
+                               class="btn btn-sm btn-outline-primary @(!Model.PurchaseHistory.HasNextPage ? "disabled" : "")">Next</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No purchase history found.</p>
+                    }
+                </div>
+
+                <!-- My Events Section (Organizer Only) -->
+                @if (User.IsInRole("Organizer") || User.IsInRole("Admin"))
+                {
+                    <div class="tab-pane fade" id="events" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h3>My Events</h3>
+                            <div class="bg-light p-2 rounded border">
+                                <strong>Total Revenue:</strong> <span class="text-success">@Model.TotalRevenue.ToString("C")</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <a asp-controller="Event" asp-action="Create" class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> Create New Event
+                            </a>
+                        </div>
+
+                        @if (Model.MyEvents.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Title</th>
+                                            <th>Date</th>
+                                            <th>Sales</th>
+                                            <th>Revenue</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var evt in Model.MyEvents)
+                                        {
+                                            var sales = evt.Purchases?.Sum(p => p.TicketQuantity) ?? 0;
+                                            var revenue = evt.Purchases?.Sum(p => p.TotalAmount) ?? 0;
+                                            <tr>
+                                                <td>@evt.Title</td>
+                                                <td>@evt.DateTime.ToString("d")</td>
+                                                <td>@sales / @(sales + evt.TicketsAvailable)</td>
+                                                <td>@revenue.ToString("C")</td>
+                                                <td>
+                                                    <a asp-controller="Event" asp-action="Edit" asp-route-id="@evt.Id" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                                    <a asp-controller="Analytics" asp-action="EventStats" asp-route-id="@evt.Id" class="btn btn-sm btn-outline-info">Stats</a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Events Pagination -->
+                            <div class="d-flex justify-content-center mt-3">
+                                <a asp-action="Index" asp-route-eventsPage="@(Model.MyEvents.PageIndex - 1)" 
+                                   class="btn btn-sm btn-outline-primary me-2 @(!Model.MyEvents.HasPreviousPage ? "disabled" : "")">Previous</a>
+                                <a asp-action="Index" asp-route-eventsPage="@(Model.MyEvents.PageIndex + 1)" 
+                                   class="btn btn-sm btn-outline-primary @(!Model.MyEvents.HasNextPage ? "disabled" : "")">Next</a>
+                            </div>
+                        }
+                        else
+                        {
+                            <p>You haven't created any events yet.</p>
+                        }
+                    </div>
+                }
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Rating Modal -->
+<div class="modal fade" id="ratingModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-star"></i> Rate This Event</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="ratingForm">
+                    <input type="hidden" id="ratingPurchaseId" name="purchaseId">
+                    <div class="mb-3 text-center">
+                        <label class="form-label d-block">Your Rating</label>
+                        <div class="star-rating" id="starRating">
+                            <i class="bi bi-star star" data-value="1"></i>
+                            <i class="bi bi-star star" data-value="2"></i>
+                            <i class="bi bi-star star" data-value="3"></i>
+                            <i class="bi bi-star star" data-value="4"></i>
+                            <i class="bi bi-star star" data-value="5"></i>
+                        </div>
+                        <input type="hidden" id="ratingStars" name="stars" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="ratingComment" class="form-label">Comment (Optional)</label>
+                        <textarea class="form-control" id="ratingComment" name="comment" rows="3" maxlength="500"></textarea>
+                    </div>
+                    <div id="ratingError" class="alert alert-danger" style="display:none;"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="submitRating">Submit Rating</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleProfileEdit(showEdit) {
+            if (showEdit) {
+                $('#profile-view').hide();
+                $('#profile-edit').fadeIn();
+            } else {
+                $('#profile-edit').hide();
+                $('#profile-view').fadeIn();
+            }
+        }
+
+        $(document).ready(function() {
+            // Profile Image Preview
+            $('#profilePictureInput').change(function() {
+                var input = this;
+                var preview = $('#profilePreview');
+                var defaultSrc = preview.data('default-src');
+
+                if (input.files && input.files[0]) {
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        preview.attr('src', e.target.result);
+                    }
+                    reader.readAsDataURL(input.files[0]);
+                } else {
+                    preview.attr('src', defaultSrc);
+                }
+            });
+
+            // Load ratings and eligibility for each purchase
+            $('.rating-cell').each(function() {
+                var cell = $(this);
+                var purchaseId = cell.data('purchase-id');
+                
+                // Check if user can rate
+                $.get('/Rating/CanRate', { purchaseId: purchaseId }, function(response) {
+                    if (response.canRate) {
+                        cell.find('.rate-btn').show();
+                    } else if (response.hasRating) {
+                        // Load existing rating
+                        $.get('/Rating/GetRating', { purchaseId: purchaseId }, function(ratingData) {
+                            if (ratingData.hasRating) {
+                                var stars = '';
+                                for (var i = 1; i <= 5; i++) {
+                                    stars += '<i class="bi bi-star' + (i <= ratingData.stars ? '-fill' : '') + ' text-warning"></i> ';
+                                }
+                                cell.find('.rating-display').html(stars);
+                            }
+                        });
+                    }
+                });
+            });
+
+            // Star rating interaction
+            var selectedStars = 0;
+            $('#starRating .star').on('mouseenter', function() {
+                var value = $(this).data('value');
+                highlightStars(value);
+            });
+
+            $('#starRating').on('mouseleave', function() {
+                highlightStars(selectedStars);
+            });
+
+            $('#starRating .star').on('click', function() {
+                selectedStars = $(this).data('value');
+                $('#ratingStars').val(selectedStars);
+                highlightStars(selectedStars);
+            });
+
+            function highlightStars(count) {
+                $('#starRating .star').each(function(index) {
+                    if (index < count) {
+                        $(this).removeClass('bi-star').addClass('bi-star-fill text-warning');
+                    } else {
+                        $(this).removeClass('bi-star-fill text-warning').addClass('bi-star');
+                    }
+                });
+            }
+
+            // Open rating modal
+            $(document).on('click', '.rate-btn', function() {
+                var purchaseId = $(this).closest('.rating-cell').data('purchase-id');
+                $('#ratingPurchaseId').val(purchaseId);
+                selectedStars = 0;
+                $('#ratingStars').val('');
+                $('#ratingComment').val('');
+                highlightStars(0);
+                $('#ratingError').hide();
+                $('#ratingModal').modal('show');
+            });
+
+            // Submit rating
+            $('#submitRating').on('click', function() {
+                var purchaseId = $('#ratingPurchaseId').val();
+                var stars = $('#ratingStars').val();
+                var comment = $('#ratingComment').val();
+
+                if (!stars || stars < 1 || stars > 5) {
+                    $('#ratingError').text('Please select a star rating').show();
+                    return;
+                }
+
+                $.ajax({
+                    url: '/Rating/SubmitRating',
+                    type: 'POST',
+                    data: {
+                        purchaseId: purchaseId,
+                        stars: stars,
+                        comment: comment,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            $('#ratingModal').modal('hide');
+                            // Refresh the page to show the new rating
+                            location.reload();
+                        } else {
+                            $('#ratingError').text(response.message).show();
+                        }
+                    },
+                    error: function(xhr) {
+                        $('#ratingError').text('Failed to submit rating. Please try again.').show();
+                    }
+                });
+            });
+        });
+    </script>
+
+    <style>
+        .star-rating {
+            font-size: 2rem;
+            cursor: pointer;
+        }
+        .star-rating .star {
+            transition: all 0.2s;
+        }
+        .star-rating .star:hover {
+            transform: scale(1.2);
+        }
+        .rating-display {
+            font-size: 1.2rem;
+        }
+    </style>
+}

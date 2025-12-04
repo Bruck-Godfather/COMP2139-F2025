@@ -1,0 +1,84 @@
+@using Microsoft.AspNetCore.Identity
+@using COMP2138_ICE.Models
+@using Microsoft.AspNetCore.Http
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    var cartJson = HttpContextAccessor.HttpContext.Session.GetString("Cart");
+    var cartCount = 0;
+    if (!string.IsNullOrEmpty(cartJson))
+    {
+        var cart = System.Text.Json.JsonSerializer.Deserialize<List<COMP2138_ICE.Models.CartItem>>(cartJson);
+        cartCount = cart?.Sum(i => i.Quantity) ?? 0;
+    }
+}
+
+<ul class="d-flex align-items-center list-unstyled m-0 gap-3">
+    <!-- Cart Icon -->
+    <!-- Cart Icon -->
+    @if (SignInManager.IsSignedIn(User) && !User.IsInRole("Admin"))
+    {
+        <li class="nav-item">
+            <a class="nav-link text-dark position-relative" asp-controller="Cart" asp-action="Index">
+                <i class="bi bi-cart3 fs-5"></i>
+                @if (cartCount > 0)
+                {
+                    <span id="cart-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success">
+                        @cartCount
+                        <span class="visually-hidden">items in cart</span>
+                    </span>
+                }
+            </a>
+        </li>
+    }
+
+@if (SignInManager.IsSignedIn(User))
+{
+    var user = await UserManager.GetUserAsync(User);
+    var profilePic = user?.ProfilePicturePath;
+    var initials = user?.DisplayName?.Substring(0, 1).ToUpper() ?? "U";
+
+    <!-- Profile Dropdown -->
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            @if (!string.IsNullOrEmpty(profilePic))
+            {
+                <img src="@profilePic" alt="Profile" class="rounded-circle border" width="32" height="32" style="object-fit: cover;">
+            }
+            else
+            {
+                <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                    @initials
+                </div>
+            }
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="navbarDropdown">
+            <li>
+                <div class="px-3 py-2 border-bottom">
+                    <div class="fw-bold">@user?.DisplayName</div>
+                    <div class="text-muted small">@user?.Email</div>
+                </div>
+            </li>
+            <li><a class="dropdown-item mt-2" asp-controller="Dashboard" asp-action="Index"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a></li>
+
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <form class="form-inline" asp-controller="Account" asp-action="Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                    <button type="submit" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right me-2"></i> Logout</button>
+                </form>
+            </li>
+        </ul>
+    </li>
+}
+else
+{
+    <li class="nav-item">
+        <a class="nav-link text-dark" asp-controller="Account" asp-action="Register">Register</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Login</a>
+    </li>
+}
+</ul>

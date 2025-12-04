@@ -1,0 +1,83 @@
+@{
+    ViewData["Title"] = "Home";
+}
+
+<!-- Hero Section -->
+<div class="bg-dark text-white text-center py-5 mb-5" style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1492684223066-81342ee5ff30?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80') no-repeat center center; background-size: cover; min-height: 500px; display: flex; align-items: center; justify-content: center;">
+    <div class="container">
+        <h1 class="display-3 fw-bold mb-3">Discover Amazing Events</h1>
+        <p class="lead mb-4">Find concerts, workshops, conferences, and more happening around you.</p>
+        
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <form asp-controller="Event" asp-action="Index" method="get" class="d-flex bg-white p-2 rounded shadow-sm">
+                    <input type="text" name="searchString" class="form-control border-0 me-2" placeholder="Search for events, artists, or venues..." aria-label="Search">
+                    <button class="btn btn-primary px-4" type="submit"><i class="bi bi-search"></i> Search</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="container mb-5">
+    <div class="row text-center g-4">
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm hover-card">
+                <div class="card-body p-4">
+                    <div class="feature-icon bg-primary bg-gradient text-white rounded-circle mb-3 mx-auto d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <i class="bi bi-calendar-check fs-3"></i>
+                    </div>
+                    <h3 class="h4">Find Events</h3>
+                    <p class="text-muted">Browse thousands of events across various categories. From music festivals to tech meetups, we have it all.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm hover-card">
+                <div class="card-body p-4">
+                    <div class="feature-icon bg-success bg-gradient text-white rounded-circle mb-3 mx-auto d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <i class="bi bi-ticket-perforated fs-3"></i>
+                    </div>
+                    <h3 class="h4">Easy Booking</h3>
+                    <p class="text-muted">Secure your spot in seconds with our seamless checkout process. Get instant digital tickets with QR codes.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm hover-card">
+                <div class="card-body p-4">
+                    <div class="feature-icon bg-warning bg-gradient text-white rounded-circle mb-3 mx-auto d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <i class="bi bi-star-fill fs-3"></i>
+                    </div>
+                    <h3 class="h4">Rate & Review</h3>
+                    <p class="text-muted">Share your experience! Rate events you've attended and help others discover the best experiences.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Call to Action -->
+<div class="bg-light py-5">
+    <div class="container text-center">
+        <h2 class="mb-4">Ready to Experience More?</h2>
+        <p class="lead text-muted mb-4">Join our community of event lovers and never miss out on the action.</p>
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+            <a asp-controller="Event" asp-action="Index" class="btn btn-primary btn-lg px-4 gap-3">Browse Events</a>
+            @if (!User.Identity.IsAuthenticated)
+            {
+                <a asp-controller="Account" asp-action="Register" class="btn btn-outline-secondary btn-lg px-4">Sign Up Now</a>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-card {
+        transition: transform 0.3s ease;
+    }
+    .hover-card:hover {
+        transform: translateY(-5px);
+    }
+</style>

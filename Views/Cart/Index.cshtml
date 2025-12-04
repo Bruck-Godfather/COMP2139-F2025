@@ -1,0 +1,69 @@
+@model IEnumerable<COMP2138_ICE.Models.CartItem>
+
+@{
+    ViewData["Title"] = "Shopping Cart";
+}
+
+<div class="container mt-4">
+    <h1>Shopping Cart</h1>
+
+    @if (Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Event</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Total</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.EventTitle</td>
+                            <td>@item.Price.ToString("C")</td>
+                            <td>
+                                <div class="input-group input-group-sm" style="width: 120px;">
+                                    <button class="btn btn-outline-secondary btn-update-cart" type="button" data-id="@item.EventId" data-change="-1">-</button>
+                                    <input type="text" class="form-control text-center" value="@item.Quantity" readonly>
+                                    <button class="btn btn-outline-secondary btn-update-cart" type="button" data-id="@item.EventId" data-change="1">+</button>
+                                </div>
+                            </td>
+                            <td id="total-@item.EventId">@item.Total.ToString("C")</td>
+                            <td>
+                                <form asp-action="RemoveFromCart" method="post">
+                                    <input type="hidden" name="eventId" value="@item.EventId" />
+                                    <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash"></i> Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" class="text-end"><strong>Grand Total:</strong></td>
+                        <td><strong id="cart-grand-total">@Model.Sum(x => x.Total).ToString("C")</strong></td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="d-flex justify-content-end">
+            <a asp-controller="Event" asp-action="Index" class="btn btn-secondary me-2">Continue Shopping</a>
+            <form asp-action="Checkout" method="post">
+                <button type="submit" class="btn btn-success btn-lg">Checkout <i class="bi bi-credit-card"></i></button>
+            </form>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            Your cart is empty. <a asp-controller="Event" asp-action="Index">Browse events</a> to add tickets.
+        </div>
+    }
+</div>

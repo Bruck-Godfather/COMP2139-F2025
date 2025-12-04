@@ -1,0 +1,70 @@
+@model COMP2138_ICE.Helpers.PaginatedList<COMP2138_ICE.Models.Event>
+
+@{
+    ViewData["Title"] = "Events";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Upcoming Events</h1>
+        @if (User.IsInRole("Admin") || User.IsInRole("Organizer"))
+        {
+            <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Create Event</a>
+        }
+    </div>
+
+    <!-- Search & Filter Section -->
+    <div class="card mb-4 bg-light">
+        <div class="card-body">
+            <form id="searchForm" class="row g-3">
+                <div class="col-md-6">
+                    <label for="searchString" class="form-label">Search Events</label>
+                    <input type="text" class="form-control" id="searchString" name="searchString" placeholder="Type event name..." value="@ViewData["CurrentFilter"]">
+                </div>
+                <div class="col-md-4">
+                    <label for="categoryId" class="form-label">Category</label>
+                    <select class="form-select" id="categoryId" name="categoryId" asp-items="ViewBag.Categories">
+                        <option value="">All Categories</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <input type="hidden" id="showPast" name="showPast" value="@(ViewData["ShowPast"]?.ToString().ToLower() ?? "false")" />
+                    <div class="btn-group w-100" role="group">
+                        <button type="button" id="resetBtn" class="btn btn-outline-secondary">Reset</button>
+                    </div>
+                </div>
+                <div class="col-12 text-end">
+                     <button type="button" id="togglePastBtn" class="btn btn-link text-decoration-none">
+                        @(Convert.ToBoolean(ViewData["ShowPast"]) ? "Show Upcoming Events" : "Show Past Events")
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Events Container (AJAX Updates) -->
+    <div id="eventsContainer">
+        <partial name="_EventPartial" model="Model" />
+    </div>
+
+</div>
+
+<!-- Purchase Confirmation Modal -->
+<div class="modal fade" id="purchaseModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-check-circle-fill"></i> Added to Cart!</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <p class="lead">Your tickets have been added to the cart.</p>
+                <div id="confetti-container"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Continue Shopping</button>
+                <a asp-controller="Cart" asp-action="Index" class="btn btn-primary">Checkout</a>
+            </div>
+        </div>
+    </div>
+</div>
